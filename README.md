@@ -11,13 +11,14 @@ There were some community PRs: https://github.com/magento/magento2/pull/33262
 
 But for some starnge reasons Adobe doesn't accept such useful changes from community members. That's weird.
 
-``elcommerce/magento2-advanced-mailer`` uses PHP ```Reflection``` API instead of big and ugly rewriting of TransportBuilder and Message classes.
+``elcommerce/magento2-advanced-mailer`` is FREE of:
+- PHP ```Reflection``` API usage
+- big and ugly rewriting of ```TransportBuilder``` with huge ``__constructor()`` overload
 
 ## Compatibility
 
-Magento: 2.4.0 and later
-
-PHP: 7.4+
+- Magento: v2.4.0 and later
+- PHP: 7.4+
 
 ## Installation
 install module using composer:
@@ -35,7 +36,7 @@ There's an override in ``di.xml``, so your ``TransportBuilder`` objects will hav
 public function addAttachment(
     string $content,
     string $fileName,
-    string $fileType = MimeInterface::TYPE_OCTET_STREAM
+    ?string $fileType = MimeInterface::TYPE_OCTET_STREAM
 ): TransportBuilder
 ```
 As bonus you have ``addMimePart()`` method too:

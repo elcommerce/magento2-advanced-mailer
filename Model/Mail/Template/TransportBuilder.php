@@ -3,11 +3,10 @@ declare(strict_types=1);
 
 namespace Elcommerce\AdvancedMailer\Model\Mail\Template;
 
-use ReflectionClass;
-use ReflectionException;
 use Laminas\Mime\Part as LaminasMimePart;
 use Laminas\Mime\Message as LaminasMimeMessage;
-use Laminas\Mail\Message as LaminasMailMessage;
+use Magento\Framework\Mail\EmailMessageInterface;
+use Magento\Framework\Mail\MessageInterface;
 use Magento\Framework\Mail\MimeInterface;
 use Magento\Framework\Mail\MimePart;
 use Magento\Framework\Mail\Template\TransportBuilder as ParentTransportBuilder;
@@ -21,11 +20,6 @@ class TransportBuilder extends ParentTransportBuilder
      * @var array
      */
     protected array $additionalMimeParts = [];
-
-    /**
-     * @var string
-     */
-    protected string $zendMessageProperty = 'zendMessage';
 
     /**
      * @return TransportBuilder
@@ -48,7 +42,7 @@ class TransportBuilder extends ParentTransportBuilder
             return $this;
         }
         throw new TransportBuilderException(
-            __("Part must be an instance of %1 or %2", MimePart::class, LaminasMimePart::class)->render()
+            sprintf("Part must be an instance of %s or %s", MimePart::class, LaminasMimePart::class)
         );
     }
 
@@ -84,41 +78,20 @@ class TransportBuilder extends ParentTransportBuilder
         if (!$this->additionalMimeParts) {
             return $this;
         }
-        $body = $this->extractZendMessageBody();
-        $parts = array_merge($body->getParts(), $this->additionalMimeParts);
-        $body->setParts($parts);
-        $this->message->setBody($body);
-        return $this;
-    }
-
-    /**
-     * @return LaminasMailMessage
-     * @throws ReflectionException
-     */
-    protected function extractZendMessage(): LaminasMailMessage
-    {
-        try {
-            $reflection = new ReflectionClass($this->message);
-            $property = $reflection->getProperty($this->zendMessageProperty);
-            $property->setAccessible(true);
-            return $property->getValue($this->message);
-        } catch (ReflectionException $e) {
-            throw new TransportBuilderException($e->getMessage(), $e->getCode(), $e);
+        if ($this->message instanceof EmailMessageInterface &&
+            $this->message instanceof MessageInterface) {
+            /** @var MimePartInterface[] $parts */
+            $parts = $this->message->getMessageBody()->getParts();
+            $mimeMessage = new LaminasMimeMessage();
+            $mimeMessage->setParts(array_merge($parts, $this->additionalMimeParts));
+            $this->message->setBody($mimeMessage);
+            return $this;
         }
-    }
-
-    /**
-     * @return LaminasMimeMessage
-     * @throws TransportBuilderException
-     */
-    protected function extractZendMessageBody(): LaminasMimeMessage
-    {
-        $body = $this->extractZendMessage()->getBody();
-        if (!$body instanceof LaminasMimeMessage) {
-            throw new TransportBuilderException(
-                __("Message body is expected to be instance of %1", LaminasMimeMessage::class)->render()
-            );
-        }
-        return $body;
+        throw new TransportBuilderException(
+            sprintf("Message should implement both %s and %s",
+                EmailMessageInterface::class,
+                MessageInterface::class
+            )
+        );
     }
 }
