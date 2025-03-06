@@ -1,0 +1,29 @@
+{
+  "name": "elcommerce/magento2-advanced-mailer",
+  "version": "0.0.1",
+  "description": "Advanced Mailer extension for Magento 2",
+  "type": "magento2-module",
+  "keywords": [
+    "m2",
+    "magento2",
+    "magento 2",
+    "magento2 extension",
+    "magento2 extension free"
+  ],
+  "require": {
+    "magento/framework": ">=103.0.0",
+    "ext-reflection": "*",
+    "php": ">=7.4.0"
+  },
+  "license": [
+    "LGPL-3.0-or-later"
+  ],
+  "autoload": {
+    "files": [
+      "registration.php"
+    ],
+    "psr-4": {
+      "Elcommerce\\AdvancedMailer\\": ""
+    }
+  }
+}
